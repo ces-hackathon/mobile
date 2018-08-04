@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 
-export default class User extends Component {
+export default class TrainDetails extends Component {
   render() {
     return (
-      <div className="user">
+      <div className="train">
         { this.props.children }
       </div>
     )

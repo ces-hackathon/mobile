@@ -1,21 +1,16 @@
+// In App.js in a new project
+
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, Text } from 'react-native';
+import { createStackNavigator } from 'react-navigation';
+import UserLogin from "./src/User/UserLogin/UserLogin";
+import TrainList from "./src/Trains/TrainList/TrainList";
 
-export default class App extends React.Component {
-  render() {
-    return (
-      <View style={styles.container}>
-          <Text>Hello world</Text>
-      </View>
-    );
-  }
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+export default createStackNavigator({
+    Home: {
+        screen: UserLogin
+    },
+    TrainList: {
+        screen: TrainList
+    }
 });
