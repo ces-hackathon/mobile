@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import {Text, View, ActivityIndicator} from 'react-native';
-import {TrainService} from "../Service/train.service";
+import {TrainService} from "../../../service/train.service";
 
 export default class TrainList extends Component {
     constructor(props){
         super(props);
-        this.state ={ isLoading: true}
+        this.state = {isLoading: true};
         this.trainService = new TrainService();
         this.getTrains();
     }
