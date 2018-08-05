@@ -6,7 +6,7 @@ import {BaseService} from "../common/BaseService";
 
 export class TrainService extends BaseService {
     async getTrains(id) {
-        let res = await this.get("/trains/" + id);
+        let res = await this.get(`/user/${id}/trains`);
         return res.json();
     }
 }
