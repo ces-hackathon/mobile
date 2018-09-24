@@ -1,54 +1,72 @@
 import React, {Component} from 'react';
 import {FlatList, Text, View} from "react-native";
 import {Icon, List, ListItem} from "react-native-elements";
-import {Font} from 'expo'
 import {BaseComponent} from "../../../common/BaseComponent";
+import {connect} from 'react-redux';
+import {Font} from 'expo'
 import * as _ from "lodash";
+import {addVoteToNom} from '../reducers/train.reducer';
 
-export default class TrainDetails extends BaseComponent {
-    constructor() {
-        super();
-        this.state = {
-            isLoading: true,
-            error: null,
-            refreshing: false,
-            train: {noms: []}
-        };
+/* Redux Stuff */
+// const loadingSelector = createLoadingSelector(['GET_TRAINS']);
+// This updates the state of our object when redux updates
+const mapStateToProps = (state) => ({
+        currentTrain: state.trains.currentTrain,
+        userTrainList: state.trains.userTrainList
     }
+);
+// This connects the dots between the function, the component, and redux
+const mapDispatchToProps = {
+    addVoteToNom
+};
+
+export class TrainDetails extends BaseComponent {
+    fontLoading = true;
 
     async componentDidMount() {
+        this.fontLoading = true;
         await this.loadFonts();
         const {navigation} = this.props;
         this.navigation = navigation;
-        this.train = navigation.getParam('train', {});
-        this.updateState({train: this.train});
     }
 
     async loadFonts() {
-        await Font.loadAsync({'Material Design Icons': require('@expo/vector-icons/fonts/MaterialCommunityIcons.ttf')});
-        await Font.loadAsync({'Feather': require('@expo/vector-icons/fonts/Feather.ttf')});
-        this.updateState({isLoading: false});
+        await Font.loadAsync(
+            {'Material Design Icons': require('@expo/vector-icons/fonts/MaterialCommunityIcons.ttf')},
+            {'Material Icons': require('@expo/vector-icons/fonts/MaterialIcons.ttf')},
+            {'Feather': require('@expo/vector-icons/fonts/Feather.ttf')}
+        );
+        this.fontLoading = false;
     }
 
     navigateToSearchWizard() {
-        if (this.state.train.noms.length >= this.state.train.trainSuggestionLimit) {
+        let currentTrain = this.getCurrentTrain();
+        if (currentTrain.noms.length >= currentTrain.trainSuggestionLimit) {
             return;
         }
-        this.navigation.navigate("SearchWizard", {existingNoms:this.state.train.noms})
+        this.navigation.navigate("SearchWizard", {existingNoms: this.props.currentTrain.noms})
     }
 
 
+    //Type is either 'downvotes' or 'upvotes'
     vote(item, type) {
-        item[type] += 1;
-        this.updateState({train: this.train});
+        this.props.addVoteToNom(item, type);
+    }
+
+    getCurrentTrain() {
+        if (this.props.userTrainList != null) {
+            return this.props.userTrainList[this.props.currentTrain];
+        }
+        return null;
     }
 
     render() {
         //Loading View
-        if (this.state.isLoading) {
+        let currentTrain = this.getCurrentTrain();
+        if (this.props.isLoading || _.isNil(currentTrain) || this.fontLoading) {
             return this.getLoadingView();
         }
-        this.state.train.noms = _.map(this.state.train.noms, nom => {
+        currentTrain.noms = _.map(currentTrain.noms, nom => {
             nom.totalVotes = nom.upvotes - nom.downvotes;
             return nom;
         });
@@ -59,8 +77,8 @@ export default class TrainDetails extends BaseComponent {
                 </Text>
                 <List style={{flex: 1}}>
                     <FlatList
-                        data={this.state.train.noms}
-                        keyExtractor={(item, index) => item.id.toString()}
+                        data={currentTrain.noms}
+                        keyExtractor={(item) => item.id.toString()}
                         renderItem={({item}) => (
                             <ListItem
                                 roundAvatar
@@ -70,16 +88,18 @@ export default class TrainDetails extends BaseComponent {
                                 rightIcon={
                                     <View>
                                         <Icon
-                                            type={'material-community'}
-                                            name={'arrow-up-bold-box'}
+                                            type={'feather'}
+                                            name={'arrow-up'}
+                                            color={'#2196F3'}
                                             onPress={() => {
                                                 this.vote(item, 'upvotes')
                                             }}
                                         />
-                                        <Text style={{paddingLeft:2}}>{item.totalVotes}</Text>
+                                        <Text style={{marginLeft: 7}}>{item.totalVotes}</Text>
                                         <Icon
-                                            type={'material-community'}
-                                            name={'arrow-down-bold-box'}
+                                            type={'feather'}
+                                            name={'arrow-down'}
+                                            color={'#FF5722'}
                                             onPress={() => {
                                                 this.vote(item, 'downvotes')
                                             }}
@@ -91,9 +111,11 @@ export default class TrainDetails extends BaseComponent {
                         )}
                         ListFooterComponent={
                             <ListItem
-                                onPress={()=>{this.navigateToSearchWizard()}}
-                                disabled={this.state.train.noms.length >= this.state.train.trainSuggestionLimit}
-                                rightIcon={{}}
+                                onPress={() => {
+                                    this.navigateToSearchWizard()
+                                }}
+                                disabled={currentTrain.noms.length >= currentTrain.trainSuggestionLimit}
+                                rightIcon={{name: 'plus-circle', type: 'feather', color:'black'}}
                                 roundAvatar
                                 key={"add"}
                                 title={'add'}
@@ -106,3 +128,5 @@ export default class TrainDetails extends BaseComponent {
         )
     }
 }
+
+export default connect(mapStateToProps, mapDispatchToProps)(TrainDetails)
