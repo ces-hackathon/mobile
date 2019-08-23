@@ -23,9 +23,12 @@ const mapDispatchToProps = {
 export class TrainDetails extends BaseComponent {
     fontLoading = true;
 
+    async componentWillMount() {
+        await this.loadFonts();
+    }
+
     async componentDidMount() {
         this.fontLoading = true;
-        await this.loadFonts();
         const {navigation} = this.props;
         this.navigation = navigation;
     }
